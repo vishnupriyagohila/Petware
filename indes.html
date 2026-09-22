@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PAWÉRA — Everyday essentials, beautifully made for them</title>
+  
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Playfair Display"', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            pawera: {
+              ivory: '#FAF7F2',
+              sand: '#F3ECE2',
+              border: '#E7DDD3',
+              clay: '#C86D51',
+              sage: '#8E9A82',
+              olive: '#5B6751',
+              chocolate: '#3E2F28',
+              charcoal: '#1E1E1E'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18 & Babel Standalone (Runs out of the box without npm/Vite) -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body {
+      background-color: #FAF7F2;
+      color: #1E1E1E;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+    }
+    ::selection {
+      background-color: #C86D51;
+      color: #FFFFFF;
+    }
+    .scrollbar-none::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-none {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn {
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-[#C86D51] selection:text-white">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef } = React;
+
+    const Icon = ({ name, className = "w-5 h-5", fill = false }) => {
+      const icons = {
+        bag: (
+          <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+        ),
+        heart: (
+          <svg className={className} fill={fill ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+        ),
+        search: (
+          <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        ),
+        close: (
+          <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        ),
+        arrowRight: (
+          <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        ),
+        star: (
+          <svg className={className} fill="currentColor" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
+            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+          </svg>
+        ),
+        check: (
+          <svg className={className} fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        ),
+        plus: (
+          <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+        ),
+        trash: (
+          <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        ),
+        shield: (
+          <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        ),
+        rotate: (
+          <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        ),
+        sparkles: (
+          <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.286L13 21l-2.286-6.857L5 12l5.714-2.286L13 3z" />
+          </svg>
+        ),
+        clock: (
+          <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        ),
+        leaf: (
+          <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z" />
+          </svg>
+        ),
+        sun: (
+          <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5"></circle>
+            <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+          </svg>
+        ),
+        moon: (
+          <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+          </svg>
+        )
+      };
+      return icons[name] || null;
+    };
+
+    const SWATCHES = [
+      { id: 'sand', name: 'Sand Dune', hex: '#E7DDD3' },
+      { id: 'sage', name: 'Misty Sage', hex: '#8E9A82' },
+      { id: 'clay', name: 'Terracotta Clay', hex: '#C86D51' },
+      { id: 'charcoal', name: 'Charcoal Noir', hex: '#262626' },
+      { id: 'cream', name: 'Alabaster Cream', hex: '#F5F2EA' }
+    ];
+
+    const PRODUCTS = [
+      {
+        id: 'pawera-cloud-bowl',
+        name: 'PAWÉRA Cloud Bowl',
+        tagline: 'Heavyweight matte ceramic dining bowl',
+        category: 'feed',
+        petType: 'both',
+        price: 1299,
+        rating: 4.9,
+        reviewsCount: 142,
+        colors: ['sand', 'sage', 'clay', 'charcoal'],
+        defaultColor: 'sand',
+        images: {
+          sand: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80',
+          sage: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=800&q=80',
+          clay: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80',
+          charcoal: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80'
+        },
+        materials: 'High-density mineral ceramic with matte silicone food-grade non-slip base.',
+        dimensions: 'Capacity: 950ml | Net Mass: 1,150g',
+        description: 'Designed to blend seamlessly into curated home interiors. Wide, shallow rim angle completely eliminates whisker fatigue while maintaining an un-tippable floor weight.',
+        badge: 'Bestseller'
+      },
+      {
+        id: 'softform-harness',
+        name: 'SoftForm Ergonomic Harness',
+        tagline: 'Cushioned pull-free all-day harness',
+        category: 'walk',
+        petType: 'dog',
+        price: 1899,
+        rating: 4.8,
+        reviewsCount: 98,
+        colors: ['clay', 'sage', 'charcoal', 'sand'],
+        defaultColor: 'clay',
+        images: {
+          clay: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?auto=format&fit=crop&w=800&q=80',
+          sage: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=800&q=80',
+          charcoal: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?auto=format&fit=crop&w=800&q=80',
+          sand: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=800&q=80'
+        },
+        materials: 'Breathable memory foam core with recycled woven ripstop shell & cast brass hardware.',
+        dimensions: 'Available in Small, Medium, Large',
+        description: 'Veterinary-calibrated chest pressure distribution. Front-clip discourages leash pulling without neck strain.',
+        badge: 'New Edition'
+      },
+      {
+        id: 'daily-walk-leash',
+        name: 'Daily Bound Leash',
+        tagline: 'Waterproof flex-coated tactile leash',
+        category: 'walk',
+        petType: 'dog',
+        price: 999,
+        rating: 4.9,
+        reviewsCount: 84,
+        colors: ['sage', 'sand', 'clay', 'charcoal'],
+        defaultColor: 'sage',
+        images: {
+          sage: 'https://images.unsplash.com/photo-1583511655826-05700d52f4d9?auto=format&fit=crop&w=800&q=80',
+          sand: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=800&q=80',
+          clay: 'https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?auto=format&fit=crop&w=800&q=80',
+          charcoal: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=800&q=80'
+        },
+        materials: 'Flex-polymer coated webbing, dirt-proof, completely odor-free & submersible.',
+        dimensions: 'Length: 1.6m | Width: 20mm | Max load: 110kg',
+        description: 'Silky smooth to the touch, waterproof in monsoon rain, and effortless to wipe clean with a damp cloth.'
+      },
+      {
+        id: 'calm-rest-bed',
+        name: 'Linen Sanctuary Bed',
+        tagline: 'Orthopedic dual-density lounge mattress',
+        category: 'rest',
+        petType: 'both',
+        price: 3499,
+        rating: 5.0,
+        reviewsCount: 167,
+        colors: ['cream', 'sand', 'charcoal'],
+        defaultColor: 'cream',
+        images: {
+          cream: 'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?auto=format&fit=crop&w=800&q=80',
+          sand: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=crop&w=800&q=80',
+          charcoal: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80'
+        },
+        materials: 'Hypoallergenic OEKO-TEX certified boucle weave, human-grade memory foam.',
+        dimensions: 'Medium: 80cm x 65cm x 18cm',
+        description: 'A soothing nest designed with a cushioned bolstered rim and high-resilience base support for aging hips.'
+      },
+      {
+        id: 'organic-daily-bites',
+        name: 'Wild Salmon Bites',
+        tagline: 'Single-ingredient slow air-dried crisps',
+        category: 'feed',
+        petType: 'both',
+        price: 649,
+        rating: 4.7,
+        reviewsCount: 204,
+        colors: ['sand'],
+        defaultColor: 'sand',
+        images: {
+          sand: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?auto=format&fit=crop&w=800&q=80'
+        },
+        materials: '100% Wild-caught Scandinavian Salmon. Zero fillers, zero grains.',
+        dimensions: 'Net weight: 150g resealable craft pouch',
+        description: 'Rich in natural EPA & DHA Omega-3 fatty acids for coat shine and cellular longevity.'
+      },
+      {
+        id: 'travel-sip-bottle',
+        name: 'Hydro Leaf Bottle',
+        tagline: 'Insulated stainless steel leaf-fountain',
+        category: 'travel',
+        petType: 'both',
+        price: 899,
+        rating: 4.8,
+        reviewsCount: 63,
+        colors: ['sage', 'sand', 'charcoal'],
+        defaultColor: 'sage',
+        images: {
+          sage: 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?auto=format&fit=crop&w=800&q=80',
+          sand: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80',
+          charcoal: 'https://images.unsplash.com/photo-1544568100-847a948585b9?auto=format&fit=crop&w=800&q=80'
+        },
+        materials: 'Double-walled vacuum insulated 18/8 food-grade steel with silicone leaf ladle.',
+        dimensions: 'Capacity: 650ml | Keeps chilled for 24 hours',
+        description: 'Press to dispense pure water into the food-safe folding silicone ladle. Unused water flows right back in.'
+      }
+    ];
+
+    const DAILY_RITUAL_DATA = [
+      {
+        time: '07:00',
+        title: 'WAKE & STRETCH',
+        iconName: 'sun',
+        tagline: 'Slow awakenings and gentle spinal alignment',
+        desc: 'Support soft joints as they rise with supportive orthopedic foundations and soothing morning grooming.',
+        suggestedProductId: 'calm-rest-bed',
+        accentText: 'Zero pressure-point waking'
+      },
+      {
+        time: '08:00',
+        title: 'NOURISH & FEED',
+        iconName: 'sparkles',
+        tagline: 'Mindful dining in weighted stoneware',
+        desc: 'Wide, whisker-relief mineral ceramic bowls that prevent rapid gulping and sit gracefully on kitchen tile.',
+        suggestedProductId: 'pawera-cloud-bowl',
+        accentText: 'Ergonomic neck angle'
+      },
+      {
+        time: '10:00',
+        title: 'THE MORNING WALK',
+        iconName: 'arrowRight',
+        tagline: 'Fresh air and effortless strides',
+        desc: 'Pull-free harness control with dirt-resistant flex leashes designed for effortless city strolls.',
+        suggestedProductId: 'softform-harness',
+        accentText: 'Weatherproof & gentle pull'
+      },
+      {
+        time: '22:00',
+        title: 'DEEP REST',
+        iconName: 'moon',
+        tagline: 'Safe, deeply cushioned slumber',
+        desc: 'Breathable linen covers and orthopedic memory foam that eases muscle fatigue during the quiet night hours.',
+        suggestedProductId: 'calm-rest-bed',
+        accentText: 'OEKO-TEX certified comfort'
+      }
+    ];
+
+    function App() {
+      // Pet selection filter ('dog' | 'cat' | 'both')
+      const [selectedPet, setSelectedPet] = useState('dog');
+      const [categoryFilter, setCategoryFilter] = useState('all');
+      
+      // Cart & Wishlist state
+      const [cart, setCart] = useState([]);
+      const [wishlist, setWishlist] = useState(['pawera-cloud-bowl', 'softform-harness']);
+      const [isCartOpen, setIsCartOpen] = useState(false);
+      const [isSearchOpen, setIsSearchOpen] = useState(false);
+      const [searchQuery, setSearchQuery] = useState('');
+      const [quickViewProduct, setQuickViewProduct] = useState(null);
+      const [toastMessage, setToastMessage] = useState(null);
+      
+      // Color choices map
+      const [selectedColors, setSelectedColors] = useState({
+        'pawera-cloud-bowl': 'sand',
+        'softform-harness': 'clay',
+        'daily-walk-leash': 'sage',
+        'calm-rest-bed': 'cream',
+        'organic-daily-bites': 'sand',
+        'travel-sip-bottle': 'sage'
+      });
+
+      // Interactive 360 viewer state
+      const [bowlAngle, setBowlAngle] = useState(30);
+      const [bowlColor, setBowlColor] = useState('sand');
+      const isDraggingBowl = useRef(false);
+      const bowlStartX = useRef(0);
+
+      // Daily Ritual state
+      const [activeRitual, setActiveRitual] = useState(1);
+
+      // Kit Builder state
+      const [kitItems, setKitItems] = useState({
+        bowl: true,
+        harness: true,
+        leash: true,
+        bed: false
+      });
+
+      // Personalization Studio state
+      const [customPetName, setCustomPetName] = useState('MILO');
+      const [customPhone, setCustomPhone] = useState('+91 98450 12345');
+      const [customCollarColor, setCustomCollarColor] = useState('clay');
+      const [customFont, setCustomFont] = useState('serif');
+
+      // Toast notification trigger
+      const showToast = (msg) => {
+        setToastMessage(msg);
+        setTimeout(() => setToastMessage(null), 3000);
+      };
+
+      const addToCart = (product, color = null, customNote = null) => {
+        const chosenColor = color || selectedColors[product.id] || product.defaultColor;
+        setCart(prev => {
+          const existing = prev.find(item => item.id === product.id && item.color === chosenColor && !customNote);
+          if (existing && !customNote) {
+            return prev.map(i => i === existing ? { ...i, quantity: i.quantity + 1 } : i);
+          }
+          return [...prev, {
+            ...product,
+            color: chosenColor,
+            quantity: 1,
+            cartItemId: `${product.id}-${chosenColor}-${Date.now()}`,
+            customNote
+          }];
+        });
+        showToast(`Added ${product.name} to your bag`);
+        setIsCartOpen(true);
+      };
+
+      const removeFromCart = (cartItemId) => {
+        setCart(prev => prev.filter(item => item.cartItemId !== cartItemId));
+      };
+
+      const updateQuantity = (cartItemId, delta) => {
+        setCart(prev => prev.map(item => {
+          if (item.cartItemId === cartItemId) {
+            const newQty = item.quantity + delta;
+            return newQty > 0 ? { ...item, quantity: newQty } : null;
+          }
+          return item;
+        }).filter(Boolean));
+      };
+
+      const toggleWishlist = (productId) => {
+        setWishlist(prev => {
+          const exists = prev.includes(productId);
+          const next = exists ? prev.filter(id => id !== productId) : [...prev, productId];
+          showToast(exists ? "Removed from Wishlist" : "Saved to Wishlist");
+          return next;
+        });
+      };
+
+      const cartSubtotal = useMemo(() => cart.reduce((s, i) => s + (i.price * i.quantity), 0), [cart]);
+      const freeShippingGoal = 2500;
+      const progressPercent = Math.min(100, (cartSubtotal / freeShippingGoal) * 100);
+
+      // Kit calculations
+      const kitPrices = {
+        bowl: { name: 'Cloud Ceramic Bowl', price: 1299 },
+        harness: { name: 'SoftForm Harness', price: 1899 },
+        leash: { name: 'Daily Bound Leash', price: 999 },
+        bed: { name: 'Sanctuary Lounge Bed', price: 3499 }
+      };
+
+      const kitSubtotal = Object.entries(kitItems).reduce((sum, [k, v]) => v ? sum + kitPrices[k].price : sum, 0);
+      const kitDiscount = Math.round(kitSubtotal * 0.10);
+      const kitFinal = kitSubtotal - kitDiscount;
+
+      // Filter products
+      const visibleProducts = useMemo(() => {
+        return PRODUCTS.filter(p => {
+          const petMatch = selectedPet === 'both' || p.petType === 'both' || p.petType === selectedPet;
+          const catMatch = categoryFilter === 'all' || p.category === categoryFilter;
+          const searchMatch = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.description.toLowerCase().includes(searchQuery.toLowerCase());
+          return petMatch && catMatch && searchMatch;
+        });
+      }, [selectedPet, categoryFilter, searchQuery]);
+
+      // 360 viewer drag events
+      const handle360Down = (e) => {
+        isDraggingBowl.current = true;
+        bowlStartX.current = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+      };
+
+      const handle360Move = (e) => {
+        if (!isDraggingBowl.current) return;
+        const currentX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+        const diff = currentX - bowlStartX.current;
+        if (Math.abs(diff) > 4) {
+          setBowlAngle(prev => (prev + (diff > 0 ? 6 : -6) + 360) % 360);
+          bowlStartX.current = currentX;
+        }
+      };
+
+      const handle360Up = () => {
+        isDraggingBowl.current = false;
+      };
+
+      return (
+        <div className="min-h-screen bg-[#FAF7F2] text-[#1E1E1E]">
+          
+          {}
+          <div className="bg-[#3E2F28] text-[#F3ECE2] text-xs tracking-widest py-2.5 px-4 text-center uppercase flex items-center justify-center gap-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#C86D51] animate-pulse"></span>
+            <span>Complimentary Carbon-Neutral Shipping On Orders Over ₹2,500</span>
+            <span className="hidden md:inline text-white/30">|</span>
+            <span className="hidden md:inline font-serif italic capitalize text-amber-200">
+              Handcrafted small-batch essentials for dogs and cats
+            </span>
+          </div>
+
+          {}
+          <header className="sticky top-0 z-40 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#E7DDD3]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+              
+              <div className="flex items-center gap-8">
+                <a href="#" className="flex flex-col">
+                  <span className="font-serif text-2xl sm:text-3xl tracking-[0.25em] font-bold text-[#1E1E1E]">
+                    PAWÉRA
+                  </span>
+                  <span className="text-[9px] tracking-[0.3em] uppercase text-[#3E2F28]/60 -mt-1 font-mono">
+                    Living Atelier
+                  </span>
+                </a>
+
+                <nav className="hidden lg:flex items-center space-x-7 text-xs uppercase tracking-widest font-medium text-[#1E1E1E]/80">
+                  <button onClick={() => setSelectedPet('dog')} className={`hover:text-[#C86D51] transition-colors ${selectedPet === 'dog' ? 'text-[#C86D51] font-bold' : ''}`}>Dog</button>
+                  <button onClick={() => setSelectedPet('cat')} className={`hover:text-[#C86D51] transition-colors ${selectedPet === 'cat' ? 'text-[#C86D51] font-bold' : ''}`}>Cat</button>
+                  <a href="#collection" onClick={() => setCategoryFilter('walk')} className="hover:text-[#C86D51] transition-colors">Walk</a>
+                  <a href="#collection" onClick={() => setCategoryFilter('feed')} className="hover:text-[#C86D51] transition-colors">Feed</a>
+                  <a href="#ritual" className="hover:text-[#C86D51] transition-colors">The Ritual</a>
+                  <a href="#kit-builder" className="hover:text-[#C86D51] transition-colors">Everyday Kit</a>
+                  <a href="#bespoke" className="hover:text-[#C86D51] transition-colors text-[#C86D51] font-semibold">Bespoke</a>
+                </nav>
+              </div>
+
+              {/* Navigation Actions */}
+              <div className="flex items-center space-x-4">
+                <button 
+                  onClick={() => setIsSearchOpen(true)}
+                  className="p-2 text-[#1E1E1E] hover:text-[#C86D51] transition-colors rounded-full hover:bg-[#F3ECE2]"
+                  title="Search products"
+                >
+                  <Icon name="search" className="w-5 h-5" />
+                </button>
+
+                <button 
+                  onClick={() => showToast(`You have ${wishlist.length} saved essentials in Wishlist.`)}
+                  className="p-2 text-[#1E1E1E] hover:text-[#C86D51] transition-colors rounded-full hover:bg-[#F3ECE2] relative"
+                  title="Wishlist"
+                >
+                  <Icon name="heart" className="w-5 h-5" fill={wishlist.length > 0} />
+                  {wishlist.length > 0 && (
+                    <span className="absolute top-1 right-1 w-4 h-4 bg-[#C86D51] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {wishlist.length}
+                    </span>
+                  )}
+                </button>
+
+                <button 
+                  onClick={() => setIsCartOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#3E2F28] text-[#F3ECE2] rounded-full hover:bg-[#1E1E1E] transition-all text-xs tracking-wider shadow-sm"
+                >
+                  <Icon name="bag" className="w-4 h-4" />
+                  <span className="font-mono">BAG ({cart.reduce((s, i) => s + i.quantity, 0)})</span>
+                </button>
+              </div>
+
+            </div>
+          </header>
+
+          {}
+          <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-[#F3ECE2]">
+            <div className="absolute inset-0 z-0">
+              <img 
+                src="https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=2000&q=85" 
+                alt="Aesthetic pet living room" 
+                className="w-full h-full object-cover filter brightness-95"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#FAF7F2] via-[#FAF7F2]/40 to-black/25"></div>
+            </div>
+
+            <div className="relative z-10 max-w-4xl mx-auto px-4 text-center py-24">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FAF7F2]/90 backdrop-blur-md border border-[#E7DDD3] text-xs uppercase tracking-[0.25em] text-[#3E2F28] mb-6">
+                <Icon name="sparkles" className="w-3.5 h-3.5 text-[#C86D51]" />
+                <span>Atelier Masterpieces for Modern Homes</span>
+              </div>
+
+              <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-light tracking-tight text-[#1E1E1E] leading-[1.1] mb-6">
+                EVERYDAY, <span className="italic font-normal text-[#C86D51]">ELEVATED.</span>
+              </h1>
+
+              <p className="max-w-2xl mx-auto text-base sm:text-lg text-[#3E2F28]/90 font-light leading-relaxed mb-10">
+                Thoughtfully designed essentials for the pets who are part of everything. 
+                Sculpted ceramic dining, all-weather flex-poly leashes, and sanctuary bedding.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button 
+                  onClick={() => { setSelectedPet('dog'); document.getElementById('collection')?.scrollIntoView({ behavior: 'smooth' }); }}
+                  className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#3E2F28] text-[#F3ECE2] hover:bg-[#1E1E1E] text-xs font-medium tracking-[0.2em] uppercase transition-all shadow-md hover:shadow-xl flex items-center justify-center gap-2"
+                >
+                  <span>SHOP DOG ATELIER</span>
+                  <Icon name="arrowRight" className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={() => { setSelectedPet('cat'); document.getElementById('collection')?.scrollIntoView({ behavior: 'smooth' }); }}
+                  className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#FAF7F2]/90 backdrop-blur-md text-[#1E1E1E] hover:bg-white border border-[#E7DDD3] text-xs font-medium tracking-[0.2em] uppercase transition-all"
+                >
+                  <span>SHOP CAT ATELIER</span>
+                </button>
+              </div>
+
+              <div className="mt-14 flex items-center justify-center gap-8 text-[#3E2F28]/70 text-xs tracking-widest uppercase">
+                <span className="flex items-center gap-2"><Icon name="shield" className="w-4 h-4 text-[#8E9A82]" /> Non-Toxic Food Grade</span>
+                <span className="flex items-center gap-2"><Icon name="check" className="w-4 h-4 text-[#8E9A82]" /> Whisker Ergonomics</span>
+                <span className="flex items-center gap-2"><Icon name="leaf" className="w-4 h-4 text-[#8E9A82]" /> Eco-Conscious Materials</span>
+              </div>
+            </div>
+          </section>
+
+          {}
+          <section className="py-20 bg-[#FAF7F2] border-b border-[#E7DDD3]">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6">
+              <div className="text-center mb-12">
+                <p className="text-xs uppercase tracking-[0.3em] text-[#C86D51] font-semibold mb-2">Curated Companion Suites</p>
+                <h2 className="font-serif text-3xl sm:text-4xl text-[#1E1E1E] font-light">Who are we shopping for today?</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div 
+                  onClick={() => setSelectedPet('dog')}
+                  className={`p-6 rounded-3xl cursor-pointer border transition-all flex items-center gap-6 ${
+                    selectedPet === 'dog' 
+                      ? 'border-[#C86D51] bg-[#F3ECE2] shadow-lg ring-2 ring-[#C86D51]/30' 
+                      : 'border-[#E7DDD3] bg-white hover:border-[#C86D51]/50'
+                  }`}
+                >
+                  <img 
+                    src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=300&q=80" 
+                    alt="Canine suite" 
+                    className="w-24 h-24 rounded-2xl object-cover"
+                  />
+                  <div>
+                    <h3 className="font-serif text-2xl text-[#1E1E1E] mb-1">CANINE COMPANION</h3>
+                    <p className="text-xs text-[#3E2F28]/70 leading-relaxed mb-3">
+                      Pull-free harnesses, waterproof leashes, and weighted stoneware.
+                    </p>
+                    <span className="text-xs font-semibold text-[#C86D51] uppercase tracking-wider">
+                      {selectedPet === 'dog' ? '✓ Actively Viewing Dog Suite' : 'Select Dogs →'}
+                    </span>
+                  </div>
+                </div>
+
+                <div 
+                  onClick={() => setSelectedPet('cat')}
+                  className={`p-6 rounded-3xl cursor-pointer border transition-all flex items-center gap-6 ${
+                    selectedPet === 'cat' 
+                      ? 'border-[#C86D51] bg-[#F3ECE2] shadow-lg ring-2 ring-[#C86D51]/30' 
+                      : 'border-[#E7DDD3] bg-white hover:border-[#C86D51]/50'
+                  }`}
+                >
+                  <img 
+                    src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=300&q=80" 
+                    alt="Feline suite" 
+                    className="w-24 h-24 rounded-2xl object-cover"
+                  />
+                  <div>
+                    <h3 className="font-serif text-2xl text-[#1E1E1E] mb-1">FELINE SANCTUARY</h3>
+                    <p className="text-xs text-[#3E2F28]/70 leading-relaxed mb-3">
+                      Whisker-relief shallow bowls, pure salmon snacks, and warm boucle.
+                    </p>
+                    <span className="text-xs font-semibold text-[#C86D51] uppercase tracking-wider">
+                      {selectedPet === 'cat' ? '✓ Actively Viewing Cat Suite' : 'Select Cats →'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {}
+          <section id="ritual" className="py-24 bg-[#F3ECE2]/60 border-b border-[#E7DDD3]">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6">
+              <div className="text-center mb-14">
+                <span className="text-xs uppercase tracking-[0.3em] text-[#C86D51] font-semibold">Circadian Harmony</span>
+                <h2 className="font-serif text-3xl sm:text-4xl text-[#1E1E1E] font-light mt-1">THE DAILY RITUAL</h2>
+                <p className="text-xs text-[#3E2F28]/70 mt-2">Click through their daily routine to discover recommended companion pieces.</p>
+              </div>
+
+              <div className="flex items-center justify-center gap-3 overflow-x-auto pb-4 mb-10">
+                {DAILY_RITUAL_DATA.map((ritual, idx) => (
+                  <button
+                    key={ritual.time}
+                    onClick={() => setActiveRitual(idx)}
+                    className={`px-5 py-3 rounded-2xl text-center transition-all ${
+                      activeRitual === idx 
+                        ? 'bg-[#3E2F28] text-white shadow-md' 
+                        : 'bg-white border border-[#E7DDD3] text-[#3E2F28] hover:border-[#3E2F28]'
+                    }`}
+                  >
+                    <span className="block font-mono text-xs font-bold">{ritual.time}</span>
+                    <span className="text-[10px] uppercase tracking-wider">{ritual.title.split(' ')[0]}</span>
+                  </button>
+                ))}
+              </div>
+
+              {(() => {
+                const current = DAILY_RITUAL_DATA[activeRitual];
+                const item = PRODUCTS.find(p => p.id === current.suggestedProductId) || PRODUCTS[0];
+                return (
+                  <div className="bg-[#FAF7F2] rounded-3xl p-8 border border-[#E7DDD3] shadow-md grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                    <div className="md:col-span-6 space-y-4">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7DDD3] text-xs font-mono">
+                        <Icon name="clock" className="w-3.5 h-3.5 text-[#C86D51]" />
+                        <span>{current.time} hrs · {current.accentText}</span>
+                      </div>
+                      <h3 className="font-serif text-3xl text-[#1E1E1E]">{current.title}</h3>
+                      <p className="text-sm font-serif italic text-[#C86D51]">“{current.tagline}”</p>
+                      <p className="text-xs text-[#3E2F28]/80 leading-relaxed">{current.desc}</p>
+                      <button 
+                        onClick={() => addToCart(item)}
+                        className="mt-4 px-6 py-3 rounded-full bg-[#3E2F28] hover:bg-[#1E1E1E] text-white text-xs uppercase tracking-widest font-semibold transition-all flex items-center gap-2"
+                      >
+                        <Icon name="bag" className="w-4 h-4" />
+                        <span>Add {item.name} — ₹{item.price}</span>
+                      </button>
+                    </div>
+                    <div className="md:col-span-6">
+                      <img 
+                        src={item.images[item.defaultColor]} 
+                        alt={item.name} 
+                        className="w-full aspect-[4/3] rounded-2xl object-cover shadow-inner"
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </section>
+
+          {}
+          <section id="collection" className="py-24 bg-[#FAF7F2]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              
+              <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b border-[#E7DDD3] pb-6">
+                <div>
+                  <span className="text-xs uppercase tracking-[0.3em] text-[#8E9A82] font-semibold">The Permanent Collection</span>
+                  <h2 className="font-serif text-3xl sm:text-4xl text-[#1E1E1E] font-light mt-1">
+                    Essentials for {selectedPet === 'dog' ? 'Dogs' : selectedPet === 'cat' ? 'Cats' : 'All Pets'}
+                  </h2>
+                </div>
+
+                <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
+                  {['all', 'feed', 'walk', 'rest', 'travel'].map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => setCategoryFilter(cat)}
+                      className={`px-4 py-2 rounded-full text-xs uppercase tracking-wider transition-all ${
+                        categoryFilter === cat 
+                          ? 'bg-[#3E2F28] text-white' 
+                          : 'bg-white border border-[#E7DDD3] text-[#3E2F28] hover:border-[#1E1E1E]'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {visibleProducts.map(prod => {
+                  const activeColor = selectedColors[prod.id] || prod.defaultColor;
+                  const activeImage = prod.images[activeColor] || Object.values(prod.images)[0];
+                  const isSaved = wishlist.includes(prod.id);
+
+                  return (
+                    <div key={prod.id} className="bg-white rounded-3xl p-5 border border-[#E7DDD3] hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+                      <div>
+                        <div className="relative aspect-square rounded-2xl overflow-hidden bg-[#F3ECE2] mb-4">
+                          <img 
+                            src={activeImage} 
+                            alt={prod.name} 
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                          <button 
+                            onClick={() => toggleWishlist(prod.id)}
+                            className="absolute top-3 right-3 p-2.5 rounded-full bg-white/90 hover:bg-white text-[#3E2F28] transition-colors shadow-sm"
+                          >
+                            <Icon name="heart" className="w-4 h-4" fill={isSaved} />
+                          </button>
+                          {prod.badge && (
+                            <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#3E2F28] text-[#F3ECE2] text-[10px] uppercase font-bold tracking-wider">
+                              {prod.badge}
+                            </span>
+                          )}
+                        </div>
+
+                        {prod.colors && prod.colors.length > 1 && (
+                          <div className="flex items-center gap-2 mb-3">
+                            {prod.colors.map(col => {
+                              const sw = SWATCHES.find(s => s.id === col);
+                              return (
+                                <button
+                                  key={col}
+                                  onClick={() => setSelectedColors(prev => ({ ...prev, [prod.id]: col }))}
+                                  className={`w-5 h-5 rounded-full border transition-all ${
+                                    activeColor === col ? 'ring-2 ring-[#C86D51] scale-110' : 'opacity-70'
+                                  }`}
+                                  style={{ backgroundColor: sw?.hex }}
+                                  title={sw?.name}
+                                />
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        <h3 className="font-serif text-xl text-[#1E1E1E]">{prod.name}</h3>
+                        <p className="text-xs text-[#3E2F28]/70 mt-1 line-clamp-1">{prod.tagline}</p>
+                      </div>
+
+                      <div className="pt-4 mt-4 border-t border-[#E7DDD3] flex items-center justify-between">
+                        <span className="font-mono text-base font-bold text-[#1E1E1E]">₹{prod.price.toLocaleString('en-IN')}</span>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => setQuickViewProduct(prod)}
+                            className="px-3.5 py-1.5 rounded-full border border-[#E7DDD3] hover:border-[#1E1E1E] text-xs font-semibold uppercase"
+                          >
+                            Specs
+                          </button>
+                          <button 
+                            onClick={() => addToCart(prod, activeColor)}
+                            className="px-4 py-1.5 rounded-full bg-[#3E2F28] hover:bg-[#1E1E1E] text-white text-xs uppercase font-semibold transition-all flex items-center gap-1"
+                          >
+                            <Icon name="plus" className="w-3 h-3" />
+                            <span>Add</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+            </div>
+          </section>
+
+          {}
+          <section className="py-24 bg-[#3E2F28] text-[#F3ECE2]">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <div className="lg:col-span-7">
+                  <div 
+                    className="bg-[#2B201B] p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col items-center cursor-grab active:cursor-grabbing select-none"
+                    onMouseDown={handle360Down}
+                    onMouseMove={handle360Move}
+                    onMouseUp={handle360Up}
+                    onTouchStart={handle360Down}
+                    onTouchMove={handle360Move}
+                    onTouchEnd={handle360Up}
+                  >
+                    <div className="w-full flex justify-between text-xs uppercase font-mono tracking-widest text-white/60 mb-4">
+                      <span className="flex items-center gap-2"><Icon name="rotate" className="w-4 h-4 text-[#C86D51]" /> 360° Inspection</span>
+                      <span>Angle: {bowlAngle}°</span>
+                    </div>
+
+                    <div className="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center my-6">
+                      <div 
+                        className="transition-transform duration-75"
+                        style={{ transform: `rotateY(${bowlAngle}deg)` }}
+                      >
+                        <img 
+                          src={
+                            bowlColor === 'sage' 
+                              ? 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=800&q=80'
+                              : bowlColor === 'clay'
+                              ? 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80'
+                              : 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80'
+                          } 
+                          alt="360 Bowl View" 
+                          className="w-56 h-56 object-cover rounded-2xl pointer-events-none shadow-2xl"
+                        />
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-white/50 uppercase tracking-widest">
+                      ← Drag horizontally to rotate 360° →
+                    </p>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-5 space-y-5">
+                  <span className="text-xs uppercase tracking-[0.3em] text-[#C86D51] font-semibold">Sculptural Stoneware</span>
+                  <h2 className="font-serif text-3xl sm:text-5xl font-light text-white leading-tight">
+                    THE 360° <br />
+                    <span className="italic text-[#C86D51]">CLOUD BOWL</span>
+                  </h2>
+                  <p className="text-xs text-white/70 leading-relaxed">
+                    Kiln-fired at 1,280°C. Ergonomic 15° whisker clearance rim with a non-tip weighted base that stays steady on polished hardwood.
+                  </p>
+
+                  <div className="pt-2">
+                    <p className="text-xs uppercase tracking-wider text-white/60 mb-2">Glaze Colorway:</p>
+                    <div className="flex gap-3">
+                      {['sand', 'sage', 'clay'].map(c => (
+                        <button 
+                          key={c}
+                          onClick={() => setBowlColor(c)}
+                          className={`w-8 h-8 rounded-full border ${bowlColor === c ? 'ring-2 ring-[#C86D51] scale-110' : 'opacity-70'}`}
+                          style={{ backgroundColor: SWATCHES.find(s => s.id === c)?.hex }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 flex items-center gap-4">
+                    <span className="font-mono text-2xl text-white">₹1,299</span>
+                    <button 
+                      onClick={() => addToCart(PRODUCTS[0], bowlColor)}
+                      className="px-6 py-3.5 rounded-full bg-[#C86D51] hover:bg-[#b05d43] text-white text-xs uppercase tracking-widest font-semibold transition-all flex items-center gap-2"
+                    >
+                      <Icon name="bag" className="w-4 h-4" />
+                      <span>Acquire Cloud Bowl</span>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+          {}
+          <section id="kit-builder" className="py-24 bg-[#FAF7F2] border-b border-[#E7DDD3]">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6">
+              <div className="text-center mb-14">
+                <span className="text-xs uppercase tracking-[0.3em] text-[#C86D51] font-semibold">Modular Wardrobe</span>
+                <h2 className="font-serif text-3xl sm:text-4xl text-[#1E1E1E] font-light mt-1">BUILD THEIR EVERYDAY KIT</h2>
+                <p className="text-xs text-[#3E2F28]/70 mt-2">Bundle everyday essentials together and save an automatic 10%.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+                <div className="md:col-span-7 space-y-4">
+                  {Object.entries(kitPrices).map(([key, data]) => (
+                    <div 
+                      key={key}
+                      onClick={() => setKitItems(prev => ({ ...prev, [key]: !prev[key] }))}
+                      className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition-all ${
+                        kitItems[key] ? 'border-[#C86D51] bg-[#F3ECE2]' : 'border-[#E7DDD3] bg-white opacity-75'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-5 h-5 rounded-md flex items-center justify-center text-white ${
+                          kitItems[key] ? 'bg-[#C86D51]' : 'border border-[#E7DDD3]'
+                        }`}>
+                          {kitItems[key] && <Icon name="check" className="w-3.5 h-3.5" />}
+                        </div>
+                        <span className="text-xs font-semibold text-[#1E1E1E]">{data.name}</span>
+                      </div>
+                      <span className="font-mono text-xs text-[#3E2F28]/80">₹{data.price}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="md:col-span-5 bg-[#3E2F28] text-white p-6 rounded-3xl space-y-4 shadow-xl">
+                  <h3 className="font-serif text-xl">KIT SUMMARY</h3>
+                  <div className="text-xs space-y-2 border-y border-white/10 py-4 font-mono">
+                    <div className="flex justify-between text-white/70">
+                      <span>Subtotal</span>
+                      <span>₹{kitSubtotal}</span>
+                    </div>
+                    <div className="flex justify-between text-[#8E9A82]">
+                      <span>Atelier 10% Bundle Credit</span>
+                      <span>- ₹{kitDiscount}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-sm text-white pt-2 border-t border-white/10">
+                      <span>Total</span>
+                      <span className="text-[#C86D51]">₹{kitFinal}</span>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => {
+                      addToCart({
+                        id: `kit-${Date.now()}`,
+                        name: `PAWÉRA Everyday Kit Bundle`,
+                        price: kitFinal,
+                        defaultColor: 'sand',
+                        images: { sand: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80' }
+                      });
+                    }}
+                    disabled={kitSubtotal === 0}
+                    className="w-full py-3.5 rounded-full bg-[#C86D51] hover:bg-[#b05d43] text-white text-xs uppercase tracking-widest font-semibold transition-all disabled:opacity-50"
+                  >
+                    ADD COMPLETE KIT TO BAG
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {}
+          <section id="bespoke" className="py-24 bg-[#F3ECE2]/80 border-b border-[#E7DDD3]">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+              <span className="text-xs uppercase tracking-[0.3em] text-[#C86D51] font-semibold">Bespoke Engraving</span>
+              <h2 className="font-serif text-3xl sm:text-4xl text-[#1E1E1E] font-light mt-1 mb-8">MAKE IT THEIRS</h2>
+
+              <div className="bg-[#FAF7F2] p-8 rounded-3xl border border-[#E7DDD3] shadow-md mb-8">
+                <div 
+                  className="w-full max-w-md mx-auto h-16 rounded-2xl shadow-inner relative flex items-center justify-center transition-colors"
+                  style={{ backgroundColor: SWATCHES.find(s => s.id === customCollarColor)?.hex || '#C86D51' }}
+                >
+                  <div className="px-6 py-2 rounded bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA771C] text-[#3A2A07] shadow-lg border border-[#8C6D1F]">
+                    <span className={`text-sm tracking-widest font-bold uppercase ${customFont === 'serif' ? 'font-serif' : 'font-mono'}`}>
+                      {customPetName || 'NAME'}
+                    </span>
+                    <span className="block text-[9px] font-mono tracking-widest opacity-80">{customPhone}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto text-left">
+                <div>
+                  <label className="text-xs font-mono uppercase text-[#3E2F28]/70 block mb-1">Companion Name</label>
+                  <input 
+                    type="text" 
+                    value={customPetName} 
+                    onChange={e => setCustomPetName(e.target.value.toUpperCase())}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#E7DDD3] bg-white text-xs font-serif font-bold uppercase"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-mono uppercase text-[#3E2F28]/70 block mb-1">Contact Phone</label>
+                  <input 
+                    type="text" 
+                    value={customPhone} 
+                    onChange={e => setCustomPhone(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#E7DDD3] bg-white text-xs font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-center gap-3">
+                {SWATCHES.map(s => (
+                  <button 
+                    key={s.id}
+                    onClick={() => setCustomCollarColor(s.id)}
+                    className={`w-7 h-7 rounded-full border ${customCollarColor === s.id ? 'ring-2 ring-[#C86D51] scale-110' : 'opacity-70'}`}
+                    style={{ backgroundColor: s.hex }}
+                  />
+                ))}
+              </div>
+
+              <button 
+                onClick={() => {
+                  addToCart({
+                    id: `engraved-collar-${Date.now()}`,
+                    name: `Bespoke Collar (${customPetName})`,
+                    price: 1499,
+                    defaultColor: customCollarColor,
+                    images: { [customCollarColor]: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?auto=format&fit=crop&w=800&q=80' }
+                  }, customCollarColor, `Engraved: ${customPetName} · ${customPhone}`);
+                }}
+                className="mt-8 px-8 py-3.5 rounded-full bg-[#3E2F28] hover:bg-[#1E1E1E] text-white text-xs uppercase tracking-widest font-semibold transition-all shadow-md"
+              >
+                ENGRAVE & ACQUIRE — ₹1,499
+              </button>
+            </div>
+          </section>
+
+          {}
+          {isCartOpen && (
+            <div className="fixed inset-0 z-50 flex justify-end">
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-xs" onClick={() => setIsCartOpen(false)} />
+              <div className="relative w-full max-w-md bg-[#FAF7F2] h-full shadow-2xl flex flex-col justify-between z-10 animate-fadeIn">
+                
+                <div className="p-6 border-b border-[#E7DDD3] bg-white flex items-center justify-between">
+                  <div>
+                    <h3 className="font-serif text-xl">YOUR BAG</h3>
+                    <p className="text-xs text-[#3E2F28]/60 font-mono">{cart.length} unique pieces</p>
+                  </div>
+                  <button onClick={() => setIsCartOpen(false)} className="p-2 text-[#3E2F28]">
+                    <Icon name="close" className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Free shipping threshold progress */}
+                <div className="bg-[#F3ECE2] px-6 py-3 border-b border-[#E7DDD3]">
+                  <div className="flex justify-between text-xs font-medium mb-1">
+                    <span>{cartSubtotal >= freeShippingGoal ? '✓ Free Shipping Unlocked' : `Add ₹${freeShippingGoal - cartSubtotal} for Free Shipping`}</span>
+                    <span className="font-mono">{Math.round(progressPercent)}%</span>
+                  </div>
+                  <div className="w-full bg-[#E7DDD3] h-1.5 rounded-full overflow-hidden">
+                    <div className="bg-[#C86D51] h-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  {cart.length === 0 ? (
+                    <div className="text-center py-20">
+                      <Icon name="bag" className="w-10 h-10 text-[#E7DDD3] mx-auto mb-2" />
+                      <p className="font-serif text-lg">Your bag is currently empty.</p>
+                    </div>
+                  ) : (
+                    cart.map(item => (
+                      <div key={item.cartItemId} className="bg-white p-4 rounded-2xl border border-[#E7DDD3] flex gap-4">
+                        <img src={item.images[item.color] || Object.values(item.images)[0]} alt={item.name} className="w-16 h-16 rounded-xl object-cover" />
+                        <div className="flex-1">
+                          <div className="flex justify-between">
+                            <h4 className="font-serif text-xs font-semibold">{item.name}</h4>
+                            <button onClick={() => removeFromCart(item.cartItemId)} className="text-[#3E2F28]/40 hover:text-[#C86D51]">
+                              <Icon name="trash" className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <p className="text-[11px] font-mono text-[#3E2F28]/60 capitalize mt-0.5">Tone: {item.color}</p>
+                          {item.customNote && <p className="text-[10px] text-[#C86D51] font-mono">{item.customNote}</p>}
+                          
+                          <div className="flex justify-between items-center mt-3">
+                            <div className="flex items-center border border-[#E7DDD3] rounded-lg bg-[#FAF7F2] text-xs">
+                              <button onClick={() => updateQuantity(item.cartItemId, -1)} className="px-2 py-0.5">-</button>
+                              <span className="px-2 font-mono">{item.quantity}</span>
+                              <button onClick={() => updateQuantity(item.cartItemId, 1)} className="px-2 py-0.5">+</button>
+                            </div>
+                            <span className="font-mono text-xs font-bold">₹{item.price * item.quantity}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {cart.length > 0 && (
+                  <div className="p-6 bg-white border-t border-[#E7DDD3] space-y-4">
+                    <div className="flex justify-between text-base font-bold font-mono">
+                      <span>Total Investment:</span>
+                      <span className="text-[#C86D51]">₹{cartSubtotal}</span>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        showToast("Order Confirmed! Your PAWÉRA pieces will dispatch shortly.");
+                        setCart([]);
+                        setIsCartOpen(false);
+                      }}
+                      className="w-full py-4 rounded-full bg-[#3E2F28] hover:bg-[#1E1E1E] text-white text-xs uppercase tracking-widest font-semibold transition-all shadow-md"
+                    >
+                      CHECKOUT VIA SECURE GATEWAY
+                    </button>
+                  </div>
+                )}
+
+              </div>
+            </div>
+          )}
+
+          {}
+          {isSearchOpen && (
+            <div className="fixed inset-0 z-50 bg-[#FAF7F2]/98 backdrop-blur-md p-6 sm:p-12 overflow-y-auto">
+              <div className="max-w-3xl mx-auto">
+                <div className="flex justify-end mb-6">
+                  <button onClick={() => setIsSearchOpen(false)} className="p-2">
+                    <Icon name="close" className="w-8 h-8 text-[#1E1E1E]" />
+                  </button>
+                </div>
+                <input 
+                  type="text" 
+                  autoFocus
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search bowls, leashes, harnesses, beds..."
+                  className="w-full pb-4 text-2xl sm:text-3xl font-serif border-b-2 border-[#1E1E1E] bg-transparent focus:outline-none focus:border-[#C86D51]"
+                />
+                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {visibleProducts.map(p => (
+                    <div 
+                      key={p.id}
+                      onClick={() => { setQuickViewProduct(p); setIsSearchOpen(false); }}
+                      className="p-4 bg-white rounded-2xl border border-[#E7DDD3] cursor-pointer flex items-center gap-4 hover:shadow-md"
+                    >
+                      <img src={p.images[p.defaultColor]} alt={p.name} className="w-16 h-16 rounded-xl object-cover" />
+                      <div>
+                        <h4 className="font-serif text-sm font-semibold">{p.name}</h4>
+                        <p className="text-xs font-mono text-[#C86D51]">₹{p.price}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {}
+          {quickViewProduct && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-xs" onClick={() => setQuickViewProduct(null)} />
+              <div className="relative w-full max-w-2xl bg-[#FAF7F2] rounded-3xl p-6 sm:p-8 border border-[#E7DDD3] shadow-2xl z-10 max-h-[90vh] overflow-y-auto animate-fadeIn">
+                <button onClick={() => setQuickViewProduct(null)} className="absolute top-6 right-6 p-2 text-[#3E2F28]">
+                  <Icon name="close" className="w-6 h-6" />
+                </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+                  <img 
+                    src={quickViewProduct.images[quickViewProduct.defaultColor]} 
+                    alt={quickViewProduct.name} 
+                    className="w-full aspect-square rounded-2xl object-cover"
+                  />
+                  <div className="space-y-3">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-[#C86D51]">{quickViewProduct.category} atelier</span>
+                    <h3 className="font-serif text-2xl text-[#1E1E1E]">{quickViewProduct.name}</h3>
+                    <p className="font-mono text-xl font-bold text-[#1E1E1E]">₹{quickViewProduct.price}</p>
+                    <p className="text-xs text-[#3E2F28]/80 leading-relaxed">{quickViewProduct.description}</p>
+                    <div className="border-t border-[#E7DDD3] pt-3 text-[11px] space-y-1 font-mono text-[#3E2F28]/70">
+                      <p><strong>Materials:</strong> {quickViewProduct.materials}</p>
+                      <p><strong>Dimensions:</strong> {quickViewProduct.dimensions}</p>
+                    </div>
+                    <button 
+                      onClick={() => { addToCart(quickViewProduct); setQuickViewProduct(null); }}
+                      className="w-full mt-4 py-3 rounded-full bg-[#3E2F28] hover:bg-[#1E1E1E] text-white text-xs uppercase tracking-widest font-semibold transition-all"
+                    >
+                      Add To Bag
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {}
+          {toastMessage && (
+            <div className="fixed bottom-6 right-6 z-50 bg-[#3E2F28] text-white px-5 py-3 rounded-full text-xs font-mono shadow-2xl flex items-center gap-2 border border-white/20">
+              <span className="w-2 h-2 rounded-full bg-[#8E9A82]"></span>
+              <span>{toastMessage}</span>
+            </div>
+          )}
+
+          {}
+          <footer className="bg-[#3E2F28] text-[#F3ECE2] py-16 border-t border-white/10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:text-left">
+              <div className="flex flex-col sm:flex-row justify-between items-center border-b border-white/10 pb-8 mb-8 gap-4">
+                <div>
+                  <span className="font-serif text-2xl tracking-[0.25em] font-bold text-white block">PAWÉRA</span>
+                  <p className="font-serif italic text-xs text-white/60">“Everyday essentials, beautifully made for them.”</p>
+                </div>
+                <div className="flex gap-6 text-xs uppercase tracking-widest font-mono text-white/70">
+                  <a href="#collection" className="hover:text-white">Collection</a>
+                  <a href="#ritual" className="hover:text-white">Ritual</a>
+                  <a href="#kit-builder" className="hover:text-white">Kit</a>
+                  <a href="#bespoke" className="hover:text-white">Bespoke</a>
+                </div>
+              </div>
+              <p className="text-[11px] font-mono text-white/40 text-center">
+                © 2026 PAWÉRA Atelier. All rights reserved. Handcrafted for modern sanctuaries.
+              </p>
+            </div>
+          </footer>
+
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
