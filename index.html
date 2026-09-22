@@ -38,7 +38,7 @@
     }
   </script>
 
-  <!-- React 18 & Babel Standalone (Runs out of the box without npm/Vite) -->
+  <!-- React 18 & Babel Standalone -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -96,15 +96,10 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useMemo, useRef } = React;
+    const { useState, useMemo, useRef } = React;
 
     const Icon = ({ name, className = "w-5 h-5", fill = false }) => {
       const icons = {
-        bag: (
-          <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-          </svg>
-        ),
         heart: (
           <svg className={className} fill={fill ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -133,16 +128,6 @@
         check: (
           <svg className={className} fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-        ),
-        plus: (
-          <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-        ),
-        trash: (
-          <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
           </svg>
         ),
         shield: (
@@ -179,6 +164,11 @@
         moon: (
           <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
             <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+          </svg>
+        ),
+        info: (
+          <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         )
       };
@@ -361,9 +351,7 @@
     function App() {
       const [selectedPet, setSelectedPet] = useState('dog');
       const [categoryFilter, setCategoryFilter] = useState('all');
-      const [cart, setCart] = useState([]);
       const [wishlist, setWishlist] = useState(['pawera-cloud-bowl', 'softform-harness']);
-      const [isCartOpen, setIsCartOpen] = useState(false);
       const [isSearchOpen, setIsSearchOpen] = useState(false);
       const [searchQuery, setSearchQuery] = useState('');
       const [quickViewProduct, setQuickViewProduct] = useState(null);
@@ -397,39 +385,6 @@
         setTimeout(() => setToastMessage(null), 3000);
       };
 
-      const addToCart = (product, color = null, customNote = null) => {
-        const chosenColor = color || selectedColors[product.id] || product.defaultColor;
-        setCart(prev => {
-          const existing = prev.find(item => item.id === product.id && item.color === chosenColor && !customNote);
-          if (existing && !customNote) {
-            return prev.map(i => i === existing ? { ...i, quantity: i.quantity + 1 } : i);
-          }
-          return [...prev, {
-            ...product,
-            color: chosenColor,
-            quantity: 1,
-            cartItemId: `${product.id}-${chosenColor}-${Date.now()}`,
-            customNote
-          }];
-        });
-        showToast(`Added ${product.name} to your bag`);
-        setIsCartOpen(true);
-      };
-
-      const removeFromCart = (cartItemId) => {
-        setCart(prev => prev.filter(item => item.cartItemId !== cartItemId));
-      };
-
-      const updateQuantity = (cartItemId, delta) => {
-        setCart(prev => prev.map(item => {
-          if (item.cartItemId === cartItemId) {
-            const newQty = item.quantity + delta;
-            return newQty > 0 ? { ...item, quantity: newQty } : null;
-          }
-          return item;
-        }).filter(Boolean));
-      };
-
       const toggleWishlist = (productId) => {
         setWishlist(prev => {
           const exists = prev.includes(productId);
@@ -438,10 +393,6 @@
           return next;
         });
       };
-
-      const cartSubtotal = useMemo(() => cart.reduce((s, i) => s + (i.price * i.quantity), 0), [cart]);
-      const freeShippingGoal = 2500;
-      const progressPercent = Math.min(100, (cartSubtotal / freeShippingGoal) * 100);
 
       const kitPrices = {
         bowl: { name: 'Cloud Ceramic Bowl', price: 1299 },
@@ -486,7 +437,7 @@
         <div className="min-h-screen bg-[#FAF7F2] text-[#1E1E1E]">
           <div className="bg-[#3E2F28] text-[#F3ECE2] text-xs tracking-widest py-2.5 px-4 text-center uppercase flex items-center justify-center gap-3">
             <span className="w-1.5 h-1.5 rounded-full bg-[#C86D51] animate-pulse"></span>
-            <span>Complimentary Carbon-Neutral Shipping On Orders Over ₹2,500</span>
+            <span>Atelier Design Archive & Product Catalog</span>
             <span className="hidden md:inline text-white/30">|</span>
             <span className="hidden md:inline font-serif italic capitalize text-amber-200">
               Handcrafted small-batch essentials for dogs and cats
@@ -517,11 +468,11 @@
               </div>
 
               <div className="flex items-center space-x-4">
-                <button onClick={() => setIsSearchOpen(true)} className="p-2 text-[#1E1E1E] hover:text-[#C86D51] transition-colors rounded-full hover:bg-[#F3ECE2]" title="Search products">
+                <button onClick={() => setIsSearchOpen(true)} className="p-2 text-[#1E1E1E] hover:text-[#C86D51] transition-colors rounded-full hover:bg-[#F3ECE2]" title="Search catalog">
                   <Icon name="search" className="w-5 h-5" />
                 </button>
 
-                <button onClick={() => showToast(`You have ${wishlist.length} saved essentials in Wishlist.`)} className="p-2 text-[#1E1E1E] hover:text-[#C86D51] transition-colors rounded-full hover:bg-[#F3ECE2] relative" title="Wishlist">
+                <button onClick={() => showToast(`You have ${wishlist.length} saved essentials in your curated shortlist.`)} className="p-2 text-[#1E1E1E] hover:text-[#C86D51] transition-colors rounded-full hover:bg-[#F3ECE2] relative" title="Wishlist">
                   <Icon name="heart" className="w-5 h-5" fill={wishlist.length > 0} />
                   {wishlist.length > 0 && (
                     <span className="absolute top-1 right-1 w-4 h-4 bg-[#C86D51] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -530,10 +481,9 @@
                   )}
                 </button>
 
-                <button onClick={() => setIsCartOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-[#3E2F28] text-[#F3ECE2] rounded-full hover:bg-[#1E1E1E] transition-all text-xs tracking-wider shadow-sm">
-                  <Icon name="bag" className="w-4 h-4" />
-                  <span className="font-mono">BAG ({cart.reduce((s, i) => s + i.quantity, 0)})</span>
-                </button>
+                <a href="#collection" className="px-5 py-2.5 bg-[#3E2F28] text-[#F3ECE2] rounded-full hover:bg-[#1E1E1E] transition-all text-xs tracking-wider font-mono">
+                  EXPLORE ARCHIVE
+                </a>
               </div>
             </div>
           </header>
@@ -560,11 +510,11 @@
 
               <div className="mobile-stack flex flex-col sm:flex-row items-center justify-center gap-4">
                 <button onClick={() => { setSelectedPet('dog'); document.getElementById('collection')?.scrollIntoView({ behavior: 'smooth' }); }} className="cta-button w-full sm:w-auto px-8 py-4 rounded-full bg-[#3E2F28] text-[#F3ECE2] hover:bg-[#1E1E1E] text-xs font-medium tracking-[0.2em] uppercase transition-all shadow-md hover:shadow-xl flex items-center justify-center gap-2">
-                  <span>SHOP DOG ATELIER</span>
+                  <span>VIEW DOG COLLECTION</span>
                   <Icon name="arrowRight" className="w-4 h-4" />
                 </button>
                 <button onClick={() => { setSelectedPet('cat'); document.getElementById('collection')?.scrollIntoView({ behavior: 'smooth' }); }} className="cta-button w-full sm:w-auto px-8 py-4 rounded-full bg-[#FAF7F2]/90 backdrop-blur-md text-[#1E1E1E] hover:bg-white border border-[#E7DDD3] text-xs font-medium tracking-[0.2em] uppercase transition-all">
-                  <span>SHOP CAT ATELIER</span>
+                  <span>VIEW CAT COLLECTION</span>
                 </button>
               </div>
 
@@ -580,7 +530,7 @@
             <div className="max-w-5xl mx-auto px-4 sm:px-6">
               <div className="text-center mb-12">
                 <p className="text-xs uppercase tracking-[0.3em] text-[#C86D51] font-semibold mb-2">Curated Companion Suites</p>
-                <h2 className="font-serif text-3xl sm:text-4xl text-[#1E1E1E] font-light">Who are we shopping for today?</h2>
+                <h2 className="font-serif text-3xl sm:text-4xl text-[#1E1E1E] font-light">Who are we designing for today?</h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -635,9 +585,9 @@
                       <h3 className="font-serif text-3xl text-[#1E1E1E]">{current.title}</h3>
                       <p className="text-sm font-serif italic text-[#C86D51]">“{current.tagline}”</p>
                       <p className="text-xs text-[#3E2F28]/80 leading-relaxed">{current.desc}</p>
-                      <button onClick={() => addToCart(item)} className="mt-4 px-6 py-3 rounded-full bg-[#3E2F28] hover:bg-[#1E1E1E] text-white text-xs uppercase tracking-widest font-semibold transition-all flex items-center gap-2">
-                        <Icon name="bag" className="w-4 h-4" />
-                        <span>Add {item.name} — ₹{item.price}</span>
+                      <button onClick={() => setQuickViewProduct(item)} className="mt-4 px-6 py-3 rounded-full bg-[#3E2F28] hover:bg-[#1E1E1E] text-white text-xs uppercase tracking-widest font-semibold transition-all flex items-center gap-2">
+                        <Icon name="info" className="w-4 h-4" />
+                        <span>View Details — {item.name}</span>
                       </button>
                     </div>
                     <div className="md:col-span-6">
@@ -704,15 +654,9 @@
 
                       <div className="pt-4 mt-4 border-t border-[#E7DDD3] flex items-center justify-between">
                         <span className="font-mono text-base font-bold text-[#1E1E1E]">₹{prod.price.toLocaleString('en-IN')}</span>
-                        <div className="flex gap-2">
-                          <button onClick={() => setQuickViewProduct(prod)} className="px-3.5 py-1.5 rounded-full border border-[#E7DDD3] hover:border-[#1E1E1E] text-xs font-semibold uppercase">
-                            Specs
-                          </button>
-                          <button onClick={() => addToCart(prod, activeColor)} className="px-4 py-1.5 rounded-full bg-[#3E2F28] hover:bg-[#1E1E1E] text-white text-xs uppercase font-semibold transition-all flex items-center gap-1">
-                            <Icon name="plus" className="w-3 h-3" />
-                            <span>Add</span>
-                          </button>
-                        </div>
+                        <button onClick={() => setQuickViewProduct(prod)} className="px-5 py-2 rounded-full bg-[#3E2F28] hover:bg-[#1E1E1E] text-white text-xs uppercase font-semibold transition-all">
+                          Inspect Specs
+                        </button>
                       </div>
                     </div>
                   );
@@ -757,9 +701,8 @@
 
                   <div className="pt-4 flex items-center gap-4">
                     <span className="font-mono text-2xl text-white">₹1,299</span>
-                    <button onClick={() => addToCart(PRODUCTS[0], bowlColor)} className="px-6 py-3.5 rounded-full bg-[#C86D51] hover:bg-[#b05d43] text-white text-xs uppercase tracking-widest font-semibold transition-all flex items-center gap-2">
-                      <Icon name="bag" className="w-4 h-4" />
-                      <span>Acquire Cloud Bowl</span>
+                    <button onClick={() => setQuickViewProduct(PRODUCTS[0])} className="px-6 py-3.5 rounded-full bg-[#C86D51] hover:bg-[#b05d43] text-white text-xs uppercase tracking-widest font-semibold transition-all">
+                      View Architecture & Specs
                     </button>
                   </div>
                 </div>
@@ -772,7 +715,7 @@
               <div className="text-center mb-14">
                 <span className="text-xs uppercase tracking-[0.3em] text-[#C86D51] font-semibold">Modular Wardrobe</span>
                 <h2 className="font-serif text-3xl sm:text-4xl text-[#1E1E1E] font-light mt-1">BUILD THEIR EVERYDAY KIT</h2>
-                <p className="text-xs text-[#3E2F28]/70 mt-2">Bundle everyday essentials together and save an automatic 10%.</p>
+                <p className="text-xs text-[#3E2F28]/70 mt-2">Explore the cohesive atelier suite designed for daily harmony.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
@@ -793,13 +736,13 @@
                 <div className="md:col-span-5 bg-[#3E2F28] text-white p-6 rounded-3xl space-y-4 shadow-xl">
                   <h3 className="font-serif text-xl">KIT SUMMARY</h3>
                   <div className="text-xs space-y-2 border-y border-white/10 py-4 font-mono">
-                    <div className="flex justify-between text-white/70"><span>Subtotal</span><span>₹{kitSubtotal}</span></div>
-                    <div className="flex justify-between text-[#8E9A82]"><span>Atelier 10% Bundle Credit</span><span>- ₹{kitDiscount}</span></div>
-                    <div className="flex justify-between font-bold text-sm text-white pt-2 border-t border-white/10"><span>Total</span><span className="text-[#C86D51]">₹{kitFinal}</span></div>
+                    <div className="flex justify-between text-white/70"><span>Archive Subtotal</span><span>₹{kitSubtotal}</span></div>
+                    <div className="flex justify-between text-[#8E9A82]"><span>Atelier 10% Bundle Value</span><span>- ₹{kitDiscount}</span></div>
+                    <div className="flex justify-between font-bold text-sm text-white pt-2 border-t border-white/10"><span>Estimated Suite Value</span><span className="text-[#C86D51]">₹{kitFinal}</span></div>
                   </div>
 
-                  <button onClick={() => { addToCart({ id: `kit-${Date.now()}`, name: `PAWÉRA Everyday Kit Bundle`, price: kitFinal, defaultColor: 'sand', images: { sand: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80' } }); }} disabled={kitSubtotal === 0} className="w-full py-3.5 rounded-full bg-[#C86D51] hover:bg-[#b05d43] text-white text-xs uppercase tracking-widest font-semibold transition-all disabled:opacity-50">
-                    ADD COMPLETE KIT TO BAG
+                  <button onClick={() => showToast("Kit details pinned. Contact our atelier concierge to reserve your edition.")} className="w-full py-3.5 rounded-full bg-[#C86D51] hover:bg-[#b05d43] text-white text-xs uppercase tracking-widest font-semibold transition-all">
+                    INQUIRE SUITE AVAILABILITY
                   </button>
                 </div>
               </div>
@@ -837,83 +780,11 @@
                 ))}
               </div>
 
-              <button onClick={() => { addToCart({ id: `engraved-collar-${Date.now()}`, name: `Bespoke Collar (${customPetName})`, price: 1499, defaultColor: customCollarColor, images: { [customCollarColor]: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?auto=format&fit=crop&w=800&q=80' } }, customCollarColor, `Engraved: ${customPetName} · ${customPhone}`); }} className="mt-8 px-8 py-3.5 rounded-full bg-[#3E2F28] hover:bg-[#1E1E1E] text-white text-xs uppercase tracking-widest font-semibold transition-all shadow-md">
-                ENGRAVE & ACQUIRE — ₹1,499
+              <button onClick={() => showToast(`Design preview captured for "${customPetName}". Reach out via concierge to order.`)} className="mt-8 px-8 py-3.5 rounded-full bg-[#3E2F28] hover:bg-[#1E1E1E] text-white text-xs uppercase tracking-widest font-semibold transition-all shadow-md">
+                SAVE BESPOKE PREVIEW
               </button>
             </div>
           </section>
-
-          {isCartOpen && (
-            <div className="fixed inset-0 z-50 flex justify-end">
-              <div className="fixed inset-0 bg-black/40 backdrop-blur-xs" onClick={() => setIsCartOpen(false)} />
-              <div className="relative w-full max-w-md bg-[#FAF7F2] h-full shadow-2xl flex flex-col justify-between z-10 animate-fadeIn">
-                <div className="p-6 border-b border-[#E7DDD3] bg-white flex items-center justify-between">
-                  <div>
-                    <h3 className="font-serif text-xl">YOUR BAG</h3>
-                    <p className="text-xs text-[#3E2F28]/60 font-mono">{cart.length} unique pieces</p>
-                  </div>
-                  <button onClick={() => setIsCartOpen(false)} className="p-2 text-[#3E2F28]">
-                    <Icon name="close" className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="bg-[#F3ECE2] px-6 py-3 border-b border-[#E7DDD3]">
-                  <div className="flex justify-between text-xs font-medium mb-1">
-                    <span>{cartSubtotal >= freeShippingGoal ? '✓ Free Shipping Unlocked' : `Add ₹${freeShippingGoal - cartSubtotal} for Free Shipping`}</span>
-                    <span className="font-mono">{Math.round(progressPercent)}%</span>
-                  </div>
-                  <div className="w-full bg-[#E7DDD3] h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-[#C86D51] h-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
-                  </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                  {cart.length === 0 ? (
-                    <div className="text-center py-20">
-                      <Icon name="bag" className="w-10 h-10 text-[#E7DDD3] mx-auto mb-2" />
-                      <p className="font-serif text-lg">Your bag is currently empty.</p>
-                    </div>
-                  ) : (
-                    cart.map(item => (
-                      <div key={item.cartItemId} className="bg-white p-4 rounded-2xl border border-[#E7DDD3] flex gap-4">
-                        <img src={item.images[item.color] || Object.values(item.images)[0]} alt={item.name} className="w-16 h-16 rounded-xl object-cover" />
-                        <div className="flex-1">
-                          <div className="flex justify-between">
-                            <h4 className="font-serif text-xs font-semibold">{item.name}</h4>
-                            <button onClick={() => removeFromCart(item.cartItemId)} className="text-[#3E2F28]/40 hover:text-[#C86D51]">
-                              <Icon name="trash" className="w-4 h-4" />
-                            </button>
-                          </div>
-                          <p className="text-[11px] font-mono text-[#3E2F28]/60 capitalize mt-0.5">Tone: {item.color}</p>
-                          {item.customNote && <p className="text-[10px] text-[#C86D51] font-mono">{item.customNote}</p>}
-                          <div className="flex justify-between items-center mt-3">
-                            <div className="flex items-center border border-[#E7DDD3] rounded-lg bg-[#FAF7F2] text-xs">
-                              <button onClick={() => updateQuantity(item.cartItemId, -1)} className="px-2 py-0.5">-</button>
-                              <span className="px-2 font-mono">{item.quantity}</span>
-                              <button onClick={() => updateQuantity(item.cartItemId, 1)} className="px-2 py-0.5">+</button>
-                            </div>
-                            <span className="font-mono text-xs font-bold">₹{item.price * item.quantity}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                {cart.length > 0 && (
-                  <div className="p-6 bg-white border-t border-[#E7DDD3] space-y-4">
-                    <div className="flex justify-between text-base font-bold font-mono">
-                      <span>Total Investment:</span>
-                      <span className="text-[#C86D51]">₹{cartSubtotal}</span>
-                    </div>
-                    <button onClick={() => { showToast("Order Confirmed! Your PAWÉRA pieces will dispatch shortly."); setCart([]); setIsCartOpen(false); }} className="w-full py-4 rounded-full bg-[#3E2F28] hover:bg-[#1E1E1E] text-white text-xs uppercase tracking-widest font-semibold transition-all shadow-md">
-                      CHECKOUT VIA SECURE GATEWAY
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           {isSearchOpen && (
             <div className="fixed inset-0 z-50 bg-[#FAF7F2]/98 backdrop-blur-md p-6 sm:p-12 overflow-y-auto">
@@ -921,7 +792,7 @@
                 <div className="flex justify-end mb-6">
                   <button onClick={() => setIsSearchOpen(false)} className="p-2"><Icon name="close" className="w-8 h-8 text-[#1E1E1E]" /></button>
                 </div>
-                <input type="text" autoFocus value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search bowls, leashes, harnesses, beds..." className="w-full pb-4 text-2xl sm:text-3xl font-serif border-b-2 border-[#1E1E1E] bg-transparent focus:outline-none focus:border-[#C86D51]" />
+                <input type="text" autoFocus value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search catalog for bowls, leashes, harnesses, beds..." className="w-full pb-4 text-2xl sm:text-3xl font-serif border-b-2 border-[#1E1E1E] bg-transparent focus:outline-none focus:border-[#C86D51]" />
                 <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {visibleProducts.map(p => (
                     <div key={p.id} onClick={() => { setQuickViewProduct(p); setIsSearchOpen(false); }} className="p-4 bg-white rounded-2xl border border-[#E7DDD3] cursor-pointer flex items-center gap-4 hover:shadow-md">
@@ -955,8 +826,8 @@
                       <p><strong>Materials:</strong> {quickViewProduct.materials}</p>
                       <p><strong>Dimensions:</strong> {quickViewProduct.dimensions}</p>
                     </div>
-                    <button onClick={() => { addToCart(quickViewProduct); setQuickViewProduct(null); }} className="w-full mt-4 py-3 rounded-full bg-[#3E2F28] hover:bg-[#1E1E1E] text-white text-xs uppercase tracking-widest font-semibold transition-all">
-                      Add To Bag
+                    <button onClick={() => { toggleWishlist(quickViewProduct.id); setQuickViewProduct(null); }} className="w-full mt-4 py-3 rounded-full bg-[#3E2F28] hover:bg-[#1E1E1E] text-white text-xs uppercase tracking-widest font-semibold transition-all">
+                      {wishlist.includes(quickViewProduct.id) ? "Remove From Shortlist" : "Save To Shortlist"}
                     </button>
                   </div>
                 </div>
